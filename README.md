@@ -1,5 +1,9 @@
 # Lara Countries
-Localized country list for laravel with all ISO 3166-1 codes. Contains following data:
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mehr-it/lara-countries.svg?style=flat-square)](https://packagist.org/packages/mehr-it/lara-countries)
+[![Build Status](https://travis-ci.org/mehr-it/lara-countries.svg?branch=master)](https://travis-ci.org/mehr-it/lara-countries)
+
+
+Localized country list for Laravel with all ISO 3166-1 codes. Contains following data:
 
 * alpha-2 country code (ISO 3166-1)
 * alpha-3 country code (ISO 3166-1)
