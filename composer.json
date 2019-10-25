@@ -33,7 +33,7 @@
         "MehrIt\\LaraCountries\\Provider\\CountriesServiceProvider"
       ],
       "aliases": {
-        "Cron": "MehrIt\\LaraCountries\\Facades\\Countries"
+        "Countries": "MehrIt\\LaraCountries\\Facades\\Countries"
       }
     }
   }
