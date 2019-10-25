@@ -83,6 +83,22 @@
 
 		}
 
+		public function testJsonSerialize() {
+			$country = new Country(
+				'DE',
+				'DEU',
+				'Deutschland',
+				'49'
+			);
+
+			$this->assertSame([
+				'iso2Code'    => 'DE',
+				'iso3Code'    => 'DEU',
+				'name'        => 'Deutschland',
+				'dialingCode' => '49',
+			], $country->jsonSerialize());
+		}
+
 //		public function testConvert() {
 //			$data = json_decode(file_get_contents(__DIR__ . '/../../../resource/countries.json'), true);
 //
