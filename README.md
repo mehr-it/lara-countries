@@ -28,7 +28,7 @@ run following command:
     
     artisan countries:import
     
-This imports the country list. If you need any other locale then "en", you can import them using
+This imports the country list. If you need any other locale than "en", you can import them using
 following command:
 
     artisan countries:importLocale de
