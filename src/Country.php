@@ -6,9 +6,10 @@
 
 	use ArrayAccess;
 	use Illuminate\Support\Str;
+	use JsonSerializable;
 	use MehrIt\LaraCountries\Contracts\CountryContract;
 
-	class Country implements CountryContract, ArrayAccess
+	class Country implements CountryContract, ArrayAccess, JsonSerializable
 	{
 		/**
 		 * @var string
@@ -142,4 +143,19 @@
 		}
 
 
+		/**
+		 * Specify data which should be serialized to JSON
+		 * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
+		 * @return mixed data which can be serialized by <b>json_encode</b>,
+		 * which is a value of any type other than a resource.
+		 * @since 5.4.0
+		 */
+		public function jsonSerialize() {
+			return [
+				'iso2Code'    => $this->getIso2Code(),
+				'iso3Code'    => $this->getIso3Code(),
+				'name'        => $this->getName(),
+				'dialingCode' => $this->getDialingCode(),
+			];
+		}
 	}
