@@ -3,13 +3,10 @@
 
 	namespace MehrIt\LaraCountries;
 
-
-	use ArrayAccess;
-	use Illuminate\Support\Str;
 	use JsonSerializable;
 	use MehrIt\LaraCountries\Contracts\CountryContract;
 
-	class Country implements CountryContract, ArrayAccess, JsonSerializable
+	class Country extends AbstractEntity implements CountryContract,  JsonSerializable
 	{
 		/**
 		 * @var string
@@ -118,37 +115,8 @@
 			return $this;
 		}
 
-		public function offsetExists($offset) {
-			return method_exists($this, 'get' . Str::ucfirst($offset));
-		}
-
-		public function offsetGet($offset) {
-			$methodName = 'get' . Str::ucfirst($offset);
-
-			if (!method_exists($this, $methodName))
-				return null;
-
-			return $this->{$methodName}();
-		}
-
-		public function offsetSet($offset, $value) {
-			$methodName = 'set' . Str::ucfirst($offset);
-
-			if ($value !== null && method_exists($this, $methodName))
-				$this->{$methodName}((string)$value);
-		}
-
-		public function offsetUnset($offset) {
-			// do nothing here
-		}
-
-
 		/**
-		 * Specify data which should be serialized to JSON
-		 * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
-		 * @return mixed data which can be serialized by <b>json_encode</b>,
-		 * which is a value of any type other than a resource.
-		 * @since 5.4.0
+		 * @inheritDoc
 		 */
 		public function jsonSerialize() {
 			return [

@@ -6,21 +6,21 @@
 
 	use Composer\Autoload\ClassLoader;
 	use Illuminate\Console\Command;
-	use MehrIt\LaraCountries\CountriesManager;
+	use MehrIt\LaraCountries\LanguagesManager;
 	use ReflectionClass;
 	use RuntimeException;
 
-	class ImportLocalizedCountryDataCommand extends Command
+	class ImportLocalizedLanguageDataCommand extends Command
 	{
-		protected $signature = 'countries:importLocale {locale : The locale to import }';
+		protected $signature = 'languages:importLocale {locale : The locale to import }';
 
-		protected $description = 'Imports country locale data';
+		protected $description = 'Imports language locale data';
 
-		public function handle(CountriesManager $countriesManager) {
+		public function handle(LanguagesManager $languagesManager) {
 
 			$locale = $this->argument('locale');
 
-			$fn = $this->getVendorPath() . "umpirsky/country-list/data/{$locale}/country.json";
+			$fn = $this->getVendorPath() . "umpirsky/language-list/data/{$locale}/language.json";
 			if (!file_exists($fn)) {
 				$this->error("No locale data found for \"{$locale}\"");
 				exit(1);
@@ -31,9 +31,9 @@
 
 
 			$counter = 0;
-			foreach($countriesManager->allIso2Codes() as $curr) {
+			foreach ($languagesManager->allIso2Codes() as $curr) {
 
-				$countriesManager->putLocalizedData($curr, $locale, [
+				$languagesManager->putLocalizedData($curr, $locale, [
 					'name' => ($data[$curr] ?? '') ?: ''
 				]);
 

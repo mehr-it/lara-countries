@@ -6,10 +6,9 @@
 
 	use Illuminate\Database\Eloquent\Model;
 
-	class CountryLocalizedData extends Model
+	class LanguageLocalizedData extends Model
 	{
-		protected $table = 'country_localized_data';
-
+		protected $table = 'language_localized_data';
 
 
 		protected $casts = [

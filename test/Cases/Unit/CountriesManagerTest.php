@@ -5,7 +5,6 @@
 
 
 	use Carbon\Carbon;
-	use Illuminate\Database\Query\Expression;
 	use Illuminate\Foundation\Testing\DatabaseMigrations;
 	use Illuminate\Support\Facades\Cache;
 	use MehrIt\LaraCountries\CountriesManager;
@@ -177,7 +176,7 @@
 			$manager->get('ES', 'de');
 
 			// shift time
-			Carbon::setTestNow(Carbon::createFromTimestamp(time() + 1));
+			Carbon::setTestNow(Carbon::createFromTimestamp(time() + 10));
 
 			// modify
 			$manager2 = new CountriesManager(
@@ -244,7 +243,7 @@
 			$manager->get('ES', 'de');
 
 			// shift time
-			Carbon::setTestNow(Carbon::createFromTimestamp(time() + 1));
+			Carbon::setTestNow(Carbon::createFromTimestamp(time() + 10));
 
 
 			// modify db

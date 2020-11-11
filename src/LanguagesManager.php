@@ -8,16 +8,15 @@
 	use Illuminate\Contracts\Cache\Repository;
 	use Illuminate\Support\Collection;
 	use InvalidArgumentException;
-	use MehrIt\LaraCountries\Contracts\CountryContract;
-	use MehrIt\LaraCountries\Model\CountryMetaData;
-	use MehrIt\LaraCountries\Model\CountryLocalizedData;
+	use MehrIt\LaraCountries\Contracts\LanguageContract;
+	use MehrIt\LaraCountries\Model\LanguageLocalizedData;
+	use MehrIt\LaraCountries\Model\LanguageMetaData;
 	use MehrIt\LaraCountries\Util\PhpArrayCache;
 	use Psr\SimpleCache\InvalidArgumentException as CacheArgumentException;
 	use Throwable;
 
-	class CountriesManager
+	class LanguagesManager
 	{
-
 		const DATA_TYPE_META = 'meta';
 		const DATA_TYPE_LOCALIZED = 'localized';
 
@@ -34,7 +33,7 @@
 
 		protected $data = [];
 
-		protected $cacheCountryDataTs = false;
+		protected $cacheLanguageDataTs = false;
 
 		protected $arrayCacheTtl = 5;
 
@@ -44,9 +43,8 @@
 		protected $arrayCache;
 
 
-
 		/**
-		 * CountriesManager constructor.
+		 * LanguagesManager constructor.
 		 * @param PhpArrayCache $arrayCache The array cache to use
 		 * @param Repository $cache The cache to use
 		 * @param string|null $cacheKeyPrefix The cache key prefix
@@ -61,7 +59,7 @@
 
 
 		/**
-		 * Returns if the given country exists
+		 * Returns if the given language exists
 		 * @param string $iso2Code The ISO2 code
 		 * @return bool True if existing. Else false.
 		 */
@@ -73,12 +71,12 @@
 		}
 
 		/**
-		 * Gets the country data for given ISO2 code
+		 * Gets the language data for given ISO2 code
 		 * @param string $iso2Code The code
 		 * @param string|null $locale The locale. If omitted, app locale will be used
-		 * @return CountryContract|null The country data or null
+		 * @return LanguageContract|null The language data or null
 		 */
-		public function get(string $iso2Code, string $locale = null): ?CountryContract {
+		public function get(string $iso2Code, string $locale = null): ?LanguageContract {
 
 			if ($locale === null)
 				$locale = app()->getLocale();
@@ -99,18 +97,16 @@
 			}
 
 
-			return new Country(
+			return new Language(
 				$metaData['iso2'],
-				$metaData['iso3'],
-				$localizedData['name'] ?? '',
-				$metaData['dialing_code']
+				$localizedData['name'] ?? ''
 			);
 		}
 
 		/**
-		 * Gets all countries
+		 * Gets all languages
 		 * @param string $locale The locale
-		 * @return CountryContract[]|\Illuminate\Support\Collection The countries
+		 * @return LanguageContract[]|\Illuminate\Support\Collection The languages
 		 */
 		public function all(string $locale = null): Collection {
 
@@ -128,12 +124,10 @@
 
 
 			$ret = [];
-			foreach($meta as $iso2 => $curr) {
-				$ret[] = new Country(
+			foreach ($meta as $iso2 => $curr) {
+				$ret[] = new Language(
 					$iso2,
-					$curr['iso3'],
-					($localized[$iso2]['name'] ?? '') ?: ($fallback[$iso2]['name'] ?? ''),
-					$curr['dialing_code']
+					($localized[$iso2]['name'] ?? '') ?: ($fallback[$iso2]['name'] ?? '')
 				);
 			}
 
@@ -141,7 +135,7 @@
 		}
 
 		/**
-		 * Gets all iso2 country codes
+		 * Gets all iso2 language codes
 		 * @return Collection
 		 */
 		public function allIso2Codes(): Collection {
@@ -149,32 +143,30 @@
 		}
 
 		/**
-		 * Persists the given country information
-		 * @param CountryContract $country The country
+		 * Persists the given language information
+		 * @param LanguageContract $language The language
 		 * @param string $locale The locale the data was given in
-		 * @return CountriesManager
+		 * @return LanguagesManager
 		 * @throws InvalidArgumentException
 		 * @throws Throwable
 		 */
-		public function put(CountryContract $country, string $locale): CountriesManager {
+		public function put(LanguageContract $language, string $locale): LanguagesManager {
 
-			(new CountryMetaData())->getConnection()->transaction(function () use ($country, $locale) {
+			(new LanguageMetaData())->getConnection()->transaction(function () use ($language, $locale) {
 
-				$metaModel = (new CountryMetaData())->query()
-					->where('iso2', '=', $country->getIso2Code())
+				$metaModel = (new LanguageMetaData())->query()
+					->where('iso2', '=', $language->getIso2Code())
 					->lockForUpdate()
 					->first();
 
 				if (!$metaModel)
-					$metaModel = new CountryMetaData();
+					$metaModel = new LanguageMetaData();
 
-				$metaModel->iso2         = $country->getIso2Code();
-				$metaModel->iso3         = $country->getIso3Code();
-				$metaModel->dialing_code = $country->getDialingCode();
+				$metaModel->iso2 = $language->getIso2Code();
 				$metaModel->save();
 
-				$this->updateLocalizedData($country->getIso2Code(), $locale, [
-					'name' => $country->getName(),
+				$this->updateLocalizedData($language->getIso2Code(), $locale, [
+					'name' => $language->getName(),
 				]);
 
 				// invalidate cache
@@ -186,16 +178,16 @@
 		}
 
 		/**
-		 * Persists the given country name
+		 * Persists the given language name
 		 * @param string $iso2Code The ISO2 code
 		 * @param array $data The data as associative array
 		 * @param string $locale The locale
-		 * @return CountriesManager
+		 * @return LanguagesManager
 		 * @throws Throwable
 		 */
-		public function putLocalizedData(string $iso2Code, string $locale, array $data): CountriesManager {
+		public function putLocalizedData(string $iso2Code, string $locale, array $data): LanguagesManager {
 
-			(new CountryLocalizedData())->getConnection()->transaction(function() use ($iso2Code, $data, $locale) {
+			(new LanguageMetaData())->getConnection()->transaction(function () use ($iso2Code, $data, $locale) {
 
 				$this->updateLocalizedData($iso2Code, $locale, $data);
 
@@ -207,11 +199,11 @@
 
 		/**
 		 * Invalidates the cache
-		 * @return CountriesManager The cache
+		 * @return LanguagesManager The cache
 		 */
-		public function invalidateCache(): CountriesManager {
+		public function invalidateCache(): LanguagesManager {
 
-			$this->cacheCountryDataTs = false;
+			$this->cacheLanguageDataTs = false;
 			$this->cache->forever($this->getDataTsKey(), Carbon::now()->getTimestamp());
 
 			$this->arrayCache->purge();
@@ -224,7 +216,7 @@
 		 * @return string The cache key
 		 */
 		protected function getDataTsKey(): string {
-			return "{$this->cacheKeyPrefix}_country_data_ts";
+			return "{$this->cacheKeyPrefix}_language_data_ts";
 		}
 
 		/**
@@ -237,19 +229,19 @@
 			if (!$cacheTs)
 				return true;
 
-			if (!$this->cacheCountryDataTs || $this->cacheCountryDataTs < Carbon::now()->getTimestamp() - $this->arrayCacheTtl) {
+			if (!$this->cacheLanguageDataTs || $this->cacheLanguageDataTs < Carbon::now()->getTimestamp() - $this->arrayCacheTtl) {
 				try {
-					$this->cacheCountryDataTs = $this->cache->get($this->getDataTsKey(), false);
+					$this->cacheLanguageDataTs = $this->cache->get($this->getDataTsKey(), false);
 				}
 				catch (CacheArgumentException $ex) {
-					$this->cacheCountryDataTs = false;
+					$this->cacheLanguageDataTs = false;
 				}
 			}
 
-			if (!$this->cacheCountryDataTs)
+			if (!$this->cacheLanguageDataTs)
 				return true;
 
-			return $this->cacheCountryDataTs > $cacheTs;
+			return $this->cacheLanguageDataTs > $cacheTs;
 		}
 
 
@@ -291,14 +283,14 @@
 
 			switch ($type) {
 				case self::DATA_TYPE_META:
-					$data = CountryMetaData::query()
+					$data = LanguageMetaData::query()
 						->get()
 						->keyBy('iso2')
 						->toArray();
 					break;
 
 				case self::DATA_TYPE_LOCALIZED:
-					$data = CountryLocalizedData::query()
+					$data = LanguageLocalizedData::query()
 						->where('locale', '=', $locale)
 						->pluck('data', 'iso2')
 						->toArray();
@@ -327,10 +319,10 @@
 		protected function getCacheKey(string $type, ?string $locale) {
 			switch ($type) {
 				case self::DATA_TYPE_META:
-					return 'meta';
+					return 'lang_meta';
 
 				case self::DATA_TYPE_LOCALIZED:
-					return "localized_{$locale}";
+					return "lang_localized_{$locale}";
 					break;
 
 				default:
@@ -346,7 +338,7 @@
 		 * @param array $data The data
 		 */
 		protected function updateLocalizedData(string $iso2Code, string $locale, array $data) {
-			$record = CountryLocalizedData::query()
+			$record = LanguageLocalizedData::query()
 				->lockForUpdate()
 				->where('locale', '=', $locale)
 				->where('iso2', '=', $iso2Code)
@@ -356,7 +348,7 @@
 				$record->data = $data;
 			}
 			else {
-				$record         = new CountryLocalizedData();
+				$record         = new LanguageLocalizedData();
 				$record->iso2   = $iso2Code;
 				$record->locale = $locale;
 				$record->data   = $data;

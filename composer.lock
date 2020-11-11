@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "656a241474259f3da7c88622db470988",
+    "content-hash": "d375392014019faf44c1f94baf3a72e5",
     "packages": [
         {
             "name": "doctrine/inflector",
@@ -2514,6 +2514,48 @@
             "time": "2019-04-12T14:29:29+00:00"
         },
         {
+            "name": "umpirsky/language-list",
+            "version": "v1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/umpirsky/language-list.git",
+                "reference": "7813f6696559496d014acd5dce0e3b09c0766844"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/umpirsky/language-list/zipball/7813f6696559496d014acd5dce0e3b09c0766844",
+                "reference": "7813f6696559496d014acd5dce0e3b09c0766844",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4"
+            },
+            "require-dev": {
+                "slowprog/composer-copy-file": "^0.2",
+                "symfony/locale": "^2.7|^3.0",
+                "umpirsky/list-generator": "^1.1"
+            },
+            "type": "library",
+            "extra": {
+                "copy-file": {
+                    "vendor/umpirsky/list-generator/Dockerfile": "./",
+                    "vendor/umpirsky/list-generator/docker-compose.yml": "./"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Saša Stamenković",
+                    "email": "umpirsky@gmail.com"
+                }
+            ],
+            "description": "List of all languages with names and ISO 639-1 codes in all languages and all data formats.",
+            "time": "2018-05-08T16:54:36+00:00"
+        },
+        {
             "name": "vlucas/phpdotenv",
             "version": "v3.6.0",
             "source": {
@@ -4270,5 +4312,6 @@
     "platform": {
         "php": ">=7.1"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

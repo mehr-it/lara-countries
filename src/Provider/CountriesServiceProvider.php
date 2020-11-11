@@ -7,8 +7,11 @@
 	use Illuminate\Support\Facades\Cache;
 	use Illuminate\Support\ServiceProvider;
 	use MehrIt\LaraCountries\Command\ImportCountriesCommand;
+	use MehrIt\LaraCountries\Command\ImportLanguagesCommand;
 	use MehrIt\LaraCountries\Command\ImportLocalizedCountryDataCommand;
+	use MehrIt\LaraCountries\Command\ImportLocalizedLanguageDataCommand;
 	use MehrIt\LaraCountries\CountriesManager;
+	use MehrIt\LaraCountries\LanguagesManager;
 	use MehrIt\LaraCountries\Util\PhpArrayCache;
 
 	class CountriesServiceProvider extends ServiceProvider implements DeferrableProvider
@@ -21,7 +24,9 @@
 			// register commands
 			$this->commands([
 				ImportCountriesCommand::class,
+				ImportLanguagesCommand::class,
 				ImportLocalizedCountryDataCommand::class,
+				ImportLocalizedLanguageDataCommand::class,
 			]);
 		}
 
@@ -36,20 +41,35 @@
 
 			$this->app->singleton(CountriesManager::class, function() {
 
-
-				$arrayCacheDir = storage_path(config('countries.array_cache_dir', 'countriesCache'));
-				if (!file_exists($arrayCacheDir))
-					mkdir($arrayCacheDir);
-
-				$cacheName = config('countries.cache');
-
 				return new CountriesManager(
-					new PhpArrayCache($arrayCacheDir),
-					Cache::store($cacheName),
+					new PhpArrayCache($this->arrayCacheDirectory()),
+					Cache::store(config('countries.cache')),
 					config('countries.cache_key_prefix'),
 					config('countries.array_cache_ttl', 5)
 				);
 			});
+
+			$this->app->singleton(LanguagesManager::class, function() {
+
+				return new LanguagesManager(
+					new PhpArrayCache($this->arrayCacheDirectory()),
+					Cache::store(config('countries.cache')),
+					config('countries.cache_key_prefix'),
+					config('countries.array_cache_ttl', 5)
+				);
+			});
+		}
+
+		/**
+		 * Creates and returns the array cache directory
+		 * @return string
+		 */
+		protected function arrayCacheDirectory(): string {
+			$arrayCacheDir = storage_path(config('countries.array_cache_dir', 'countriesCache'));
+			if (!file_exists($arrayCacheDir))
+				mkdir($arrayCacheDir);
+
+			return $arrayCacheDir;
 		}
 
 		/**
@@ -58,6 +78,7 @@
 		public function provides() {
 			return [
 				CountriesManager::class,
+				LanguagesManager::class,
 			];
 		}
 	}
