@@ -20,7 +20,7 @@
 				'iso2' => 'de',
 			]);
 
-			$this->assertSame(609, LanguageMetaData::query()->count());
+			$this->assertSame(184, LanguageMetaData::query()->count());
 		}
 
 	}

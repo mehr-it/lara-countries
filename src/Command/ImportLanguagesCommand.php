@@ -20,10 +20,10 @@
 			$data = json_decode(file_get_contents(__DIR__ . '/../../resources/language_meta.json'), true);
 
 			$counter = 0;
-			foreach ($data as $code => $name) {
+			foreach ($data as $curr) {
 				$languagesManager->put(new Language(
-					$code,
-					$name
+					$curr['iso2Code'],
+					$curr['name']
 				), 'en');
 
 				++$counter;
