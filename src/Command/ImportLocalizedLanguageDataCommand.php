@@ -42,6 +42,8 @@
 
 
 			$this->info("Imported {$counter} locale data sets [locale: {$locale}]");
+
+			return 0;
 		}
 
 

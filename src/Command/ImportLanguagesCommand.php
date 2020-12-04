@@ -30,6 +30,8 @@
 			}
 
 			$this->info("Imported {$counter} languages [locale: en]");
+
+			return 0;
 		}
 
 	}

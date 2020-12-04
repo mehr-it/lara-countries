@@ -32,6 +32,8 @@
 			}
 
 			$this->info("Imported {$counter} countries [locale: en]");
+
+			return 0;
 		}
 
 	}
