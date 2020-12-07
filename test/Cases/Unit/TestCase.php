@@ -5,6 +5,7 @@
 
 
 	use Carbon\Carbon;
+	use Illuminate\Foundation\Application;
 	use MehrIt\LaraCountries\Provider\CountriesServiceProvider;
 
 	class TestCase extends \Orchestra\Testbench\TestCase
