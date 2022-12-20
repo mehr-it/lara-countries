@@ -314,6 +314,12 @@
 			];
 
 			$this->arrayCache->put($this->getCacheKey($type, $locale), $cacheData);
+			
+			// if yet not set, set the data timestamp in cache (if we would not do this, 
+			// cached data will always be treated as expired until any of the put-methods is
+			// invoked)
+			if (!$this->cache->get($this->getDataTsKey()))
+				$this->cache->set($this->getDataTsKey(), Carbon::now()->getTimestamp());
 
 			return $cacheData;
 		}

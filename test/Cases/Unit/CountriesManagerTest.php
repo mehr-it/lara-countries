@@ -98,6 +98,70 @@
 			$this->assertSame(null, $manager->get('ES', 'de'));
 		}
 
+		public function testPutGet_cacheRecoversAfterMissingTs() {
+
+			$arrayCache = $this->mockArrayCache();
+
+			Carbon::setTestNow(Carbon::createFromTimestamp(time()));
+
+			$manager = new CountriesManager(
+				$arrayCache,
+				Cache::store(),
+				null,
+				0
+			);
+
+			$country1 = new Country(
+				'DE',
+				'DEU',
+				'Deutschland',
+				'49'
+			);
+
+			$country2 = new Country(
+				'US',
+				'USA',
+				'Vereinigte Staaten von Amerika',
+				'1'
+			);
+
+			$this->assertSame($manager, $manager->put($country1, 'de'));
+			$this->assertSame($manager, $manager->put($country2, 'de'));
+
+			// load to cache 
+			$manager->get('DE', 'de');
+			$manager->get('US', 'de');
+			$manager->get('ES', 'de');
+			
+			dump(Cache::get('_country_data_ts'));
+
+			// clear cache (this should mark any cached data as expired)
+			Cache::store()->clear();
+
+			$manager2 = new CountriesManager(
+				$arrayCache,
+				Cache::store(),
+				null,
+				0
+			);
+
+			// retrieve again => this should fill the cache again
+			$this->assertEquals($country1, $manager2->get('DE', 'de'));
+			$this->assertEquals($country2, $manager2->get('US', 'de'));
+			
+			dump(Cache::get('_country_data_ts'));
+			
+			// clear DB
+			CountryMetaData::query()->delete();
+			CountryLocalizedData::query()->delete();
+
+
+			// if the cache was rebuild, we should still receive the cached data
+			$this->assertEquals($country1, $manager2->get('DE', 'de'));
+			$this->assertEquals($country2, $manager2->get('US', 'de'));
+			
+		}
+		
 		public function testPutGet_withDefaultLocale() {
 
 			$arrayCache = $this->mockArrayCache();
