@@ -11,54 +11,15 @@
 	use MehrIt\LaraCountries\LanguagesManager;
 	use MehrIt\LaraCountries\Model\LanguageLocalizedData;
 	use MehrIt\LaraCountries\Model\LanguageMetaData;
-	use MehrIt\LaraCountries\Util\PhpArrayCache;
-	use PHPUnit\Framework\MockObject\MockObject;
 
 	class LanguagesManagerTest extends TestCase
 	{
 		use DatabaseMigrations;
 
-
-		/**
-		 * Mocks the array cache
-		 * @return PhpArrayCache|MockObject
-		 */
-		protected function mockArrayCache() {
-
-			$data = [];
-
-			/** @var PhpArrayCache|MockObject $mock */
-			$mock = $this->getMockBuilder(PhpArrayCache::class)->disableOriginalConstructor()->getMock();
-			$mock
-				->method('get')
-				->willReturnCallback(function (string $key) use (&$data) {
-					$ret = $data[$key] ?? [];
-
-					return is_array($ret) ? $ret : [];
-				});
-			$mock
-				->method('put')
-				->willReturnCallback(function (string $key, array $v) use (&$data, $mock) {
-					$data[$key] = $v;
-
-					return $mock;
-				});
-			$mock
-				->method('purge')
-				->willReturnCallback(function () use (&$data, $mock) {
-					$data = [];
-
-					return $mock;
-				});
-
-
-			return $mock;
-		}
-
-
+		
 		public function testPutGet() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -87,7 +48,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 			// cache is empty => should be read from memory now
 			$this->assertEquals($lang1, $manager->get('de', 'de'));
@@ -97,7 +58,7 @@
 
 		public function testPutGet_withDefaultLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -125,7 +86,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 			// cache is empty => should be read from memory now
 			$this->assertEquals($lang1, $manager->get('de'));
@@ -135,7 +96,7 @@
 
 		public function testPutGet_modifiedByOtherInstance() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			Carbon::setTestNow(Carbon::createFromTimestamp(time()));
 
@@ -190,7 +151,7 @@
 
 		public function testPutGet_cacheInvalidatedByOtherInstance() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			Carbon::setTestNow(Carbon::createFromTimestamp(time()));
 
@@ -242,7 +203,7 @@
 
 		public function testPutGet_differentLocale_notSet() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -279,7 +240,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -294,7 +255,7 @@
 
 		public function testPutGet_differentLocale_set() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -335,7 +296,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -350,7 +311,7 @@
 
 		public function testPutGet_fallbackLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -387,7 +348,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -399,7 +360,7 @@
 
 		public function testPutAll_withDifferentLocales() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -435,7 +396,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -445,7 +406,7 @@
 
 		public function testPutAll_withDefaultLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -472,7 +433,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -481,7 +442,7 @@
 
 		public function testPutAll_fallbackLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -510,7 +471,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -519,7 +480,7 @@
 
 		public function testPutAllIso2Codes() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new LanguagesManager(
 				$arrayCache,
@@ -546,7 +507,7 @@
 			// clear cache and db is empty
 			LanguageMetaData::query()->delete();
 			LanguageLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now

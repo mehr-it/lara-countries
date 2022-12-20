@@ -11,7 +11,7 @@
 	use MehrIt\LaraCountries\Contracts\LanguageContract;
 	use MehrIt\LaraCountries\Model\LanguageLocalizedData;
 	use MehrIt\LaraCountries\Model\LanguageMetaData;
-	use MehrIt\LaraCountries\Util\PhpArrayCache;
+	use MehrIt\PhpCache\PhpCache;
 	use Psr\SimpleCache\InvalidArgumentException as CacheArgumentException;
 	use Throwable;
 
@@ -38,21 +38,21 @@
 		protected $arrayCacheTtl = 5;
 
 		/**
-		 * @var PhpArrayCache
+		 * @var PhpCache
 		 */
-		protected $arrayCache;
+		protected $localCache;
 
 
 		/**
 		 * LanguagesManager constructor.
-		 * @param PhpArrayCache $arrayCache The array cache to use
+		 * @param PhpCache $localCache The PHP cache to use
 		 * @param Repository $cache The cache to use
 		 * @param string|null $cacheKeyPrefix The cache key prefix
 		 * @param int $arrayCacheTtl The array cache time to live in seconds
 		 */
-		public function __construct(PhpArrayCache $arrayCache, Repository $cache, ?string $cacheKeyPrefix = null, int $arrayCacheTtl = 5) {
-			$this->arrayCache     = $arrayCache;
-			$this->cache          = $cache;
+		public function __construct(PhpCache $localCache, Repository $cache, ?string $cacheKeyPrefix = null, int $arrayCacheTtl = 5) {
+			$this->localCache = $localCache;
+			$this->cache      = $cache;
 			$this->cacheKeyPrefix = $cacheKeyPrefix;
 			$this->arrayCacheTtl  = $arrayCacheTtl;
 		}
@@ -206,7 +206,7 @@
 			$this->cacheLanguageDataTs = false;
 			$this->cache->forever($this->getDataTsKey(), Carbon::now()->getTimestamp());
 
-			$this->arrayCache->purge();
+			$this->localCache->clear();
 
 			return $this;
 		}
@@ -259,7 +259,7 @@
 
 			// load from array cache if not in memory
 			if ($data === false)
-				$data = $this->data[$key] = $this->arrayCache->get($key);
+				$data = $this->data[$key] = $this->localCache->get($key);
 
 			// reload data from DB if expired
 			if ($this->isCacheExpired($data['ts'] ?? 0))
@@ -305,7 +305,7 @@
 				'data' => $data,
 			];
 
-			$this->arrayCache->put($this->getCacheKey($type, $locale), $cacheData);
+			$this->localCache->set($this->getCacheKey($type, $locale), $cacheData);
 
 			return $cacheData;
 		}

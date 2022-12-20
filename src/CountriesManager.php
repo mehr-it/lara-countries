@@ -11,7 +11,7 @@
 	use MehrIt\LaraCountries\Contracts\CountryContract;
 	use MehrIt\LaraCountries\Model\CountryMetaData;
 	use MehrIt\LaraCountries\Model\CountryLocalizedData;
-	use MehrIt\LaraCountries\Util\PhpArrayCache;
+	use MehrIt\PhpCache\PhpCache;
 	use Psr\SimpleCache\InvalidArgumentException as CacheArgumentException;
 	use Throwable;
 
@@ -39,21 +39,20 @@
 		protected $arrayCacheTtl = 5;
 
 		/**
-		 * @var PhpArrayCache
+		 * @var PhpCache
 		 */
-		protected $arrayCache;
-
+		protected $localCache;
 
 
 		/**
 		 * CountriesManager constructor.
-		 * @param PhpArrayCache $arrayCache The array cache to use
+		 * @param PhpCache $localCache The php cache to use
 		 * @param Repository $cache The cache to use
 		 * @param string|null $cacheKeyPrefix The cache key prefix
 		 * @param int $arrayCacheTtl The array cache time to live in seconds
 		 */
-		public function __construct(PhpArrayCache $arrayCache, Repository $cache, ?string $cacheKeyPrefix = null, int $arrayCacheTtl = 5) {
-			$this->arrayCache     = $arrayCache;
+		public function __construct(PhpCache $localCache, Repository $cache, ?string $cacheKeyPrefix = null, int $arrayCacheTtl = 5) {
+			$this->localCache     = $localCache;
 			$this->cache          = $cache;
 			$this->cacheKeyPrefix = $cacheKeyPrefix;
 			$this->arrayCacheTtl  = $arrayCacheTtl;
@@ -128,7 +127,7 @@
 
 
 			$ret = [];
-			foreach($meta as $iso2 => $curr) {
+			foreach ($meta as $iso2 => $curr) {
 				$ret[] = new Country(
 					$iso2,
 					$curr['iso3'],
@@ -195,7 +194,7 @@
 		 */
 		public function putLocalizedData(string $iso2Code, string $locale, array $data): CountriesManager {
 
-			(new CountryLocalizedData())->getConnection()->transaction(function() use ($iso2Code, $data, $locale) {
+			(new CountryLocalizedData())->getConnection()->transaction(function () use ($iso2Code, $data, $locale) {
 
 				$this->updateLocalizedData($iso2Code, $locale, $data);
 
@@ -214,7 +213,7 @@
 			$this->cacheCountryDataTs = false;
 			$this->cache->forever($this->getDataTsKey(), Carbon::now()->getTimestamp());
 
-			$this->arrayCache->purge();
+			$this->localCache->clear();
 
 			return $this;
 		}
@@ -267,7 +266,7 @@
 
 			// load from array cache if not in memory
 			if ($data === false)
-				$data = $this->data[$key] = $this->arrayCache->get($key);
+				$data = $this->data[$key] = $this->localCache->get($key);
 
 			// reload data from DB if expired
 			if ($this->isCacheExpired($data['ts'] ?? 0))
@@ -313,8 +312,8 @@
 				'data' => $data,
 			];
 
-			$this->arrayCache->put($this->getCacheKey($type, $locale), $cacheData);
-			
+			$this->localCache->set($this->getCacheKey($type, $locale), $cacheData);
+
 			// if yet not set, set the data timestamp in cache (if we would not do this, 
 			// cached data will always be treated as expired until any of the put-methods is
 			// invoked)
@@ -337,7 +336,6 @@
 
 				case self::DATA_TYPE_LOCALIZED:
 					return "localized_{$locale}";
-					break;
 
 				default:
 					throw new InvalidArgumentException('Unexpected data type');

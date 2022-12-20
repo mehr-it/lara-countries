@@ -7,6 +7,7 @@
 	use Carbon\Carbon;
 	use Illuminate\Foundation\Application;
 	use MehrIt\LaraCountries\Provider\CountriesServiceProvider;
+	use MehrIt\PhpCache\PhpCache;
 
 	class TestCase extends \Orchestra\Testbench\TestCase
 	{
@@ -45,4 +46,12 @@
 			return $mock;
 		}
 
+		/**
+		 * Creates a local PHP cache
+		 * @return PhpCache
+		 */
+		protected function makeLocalCache() {
+
+			return new PhpCache(sys_get_temp_dir() . '/' . uniqid('phpCache'));
+		}
 	}

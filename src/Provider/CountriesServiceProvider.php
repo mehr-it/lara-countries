@@ -12,7 +12,7 @@
 	use MehrIt\LaraCountries\Command\ImportLocalizedLanguageDataCommand;
 	use MehrIt\LaraCountries\CountriesManager;
 	use MehrIt\LaraCountries\LanguagesManager;
-	use MehrIt\LaraCountries\Util\PhpArrayCache;
+	use MehrIt\PhpCache\PhpCache;
 
 	class CountriesServiceProvider extends ServiceProvider implements DeferrableProvider
 	{
@@ -42,7 +42,7 @@
 			$this->app->singleton(CountriesManager::class, function() {
 
 				return new CountriesManager(
-					new PhpArrayCache($this->arrayCacheDirectory()),
+					new PhpCache($this->arrayCacheDirectory()),
 					Cache::store(config('countries.cache')),
 					config('countries.cache_key_prefix'),
 					config('countries.array_cache_ttl', 5)
@@ -52,7 +52,7 @@
 			$this->app->singleton(LanguagesManager::class, function() {
 
 				return new LanguagesManager(
-					new PhpArrayCache($this->arrayCacheDirectory()),
+					new PhpCache($this->arrayCacheDirectory()),
 					Cache::store(config('countries.cache')),
 					config('countries.cache_key_prefix'),
 					config('countries.array_cache_ttl', 5)

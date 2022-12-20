@@ -11,54 +11,15 @@
 	use MehrIt\LaraCountries\Country;
 	use MehrIt\LaraCountries\Model\CountryLocalizedData;
 	use MehrIt\LaraCountries\Model\CountryMetaData;
-	use MehrIt\LaraCountries\Util\PhpArrayCache;
-	use PHPUnit\Framework\MockObject\MockObject;
 
 	class CountriesManagerTest extends TestCase
 	{
 		use DatabaseMigrations;
-
-
-		/**
-		 * Mocks the array cache
-		 * @return PhpArrayCache|MockObject
-		 */
-		protected function mockArrayCache() {
-
-			$data = [];
-
-			/** @var PhpArrayCache|MockObject $mock */
-			$mock = $this->getMockBuilder(PhpArrayCache::class)->disableOriginalConstructor()->getMock();
-			$mock
-				->method('get')
-				->willReturnCallback(function(string $key) use (&$data) {
-					$ret = $data[$key] ?? [];
-
-					return is_array($ret) ? $ret : [];
-				});
-			$mock
-				->method('put')
-				->willReturnCallback(function(string $key, array $v) use (&$data, $mock) {
-					$data[$key] = $v;
-
-					return $mock;
-				});
-			$mock
-				->method('purge')
-				->willReturnCallback(function() use (&$data, $mock) {
-					$data = [];
-
-					return $mock;
-				});
-
-
-			return $mock;
-		}
-
+		
 
 		public function testPutGet() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -90,7 +51,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 			// cache is empty => should be read from memory now
 			$this->assertEquals($country1, $manager->get('DE', 'de'));
@@ -100,7 +61,7 @@
 
 		public function testPutGet_cacheRecoversAfterMissingTs() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			Carbon::setTestNow(Carbon::createFromTimestamp(time()));
 
@@ -132,8 +93,6 @@
 			$manager->get('DE', 'de');
 			$manager->get('US', 'de');
 			$manager->get('ES', 'de');
-			
-			dump(Cache::get('_country_data_ts'));
 
 			// clear cache (this should mark any cached data as expired)
 			Cache::store()->clear();
@@ -149,8 +108,6 @@
 			$this->assertEquals($country1, $manager2->get('DE', 'de'));
 			$this->assertEquals($country2, $manager2->get('US', 'de'));
 			
-			dump(Cache::get('_country_data_ts'));
-			
 			// clear DB
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
@@ -164,7 +121,7 @@
 		
 		public function testPutGet_withDefaultLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -196,7 +153,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 			// cache is empty => should be read from memory now
 			$this->assertEquals($country1, $manager->get('DE'));
@@ -206,7 +163,7 @@
 
 		public function testPutGet_modifiedByOtherInstance() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			Carbon::setTestNow(Carbon::createFromTimestamp(time()));
 
@@ -273,7 +230,7 @@
 
 		public function testPutGet_cacheInvalidatedByOtherInstance() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			Carbon::setTestNow(Carbon::createFromTimestamp(time()));
 
@@ -336,7 +293,7 @@
 
 		public function testPutGet_differentLocale_notSet() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -377,7 +334,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -392,7 +349,7 @@
 
 		public function testPutGet_differentLocale_set() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -437,7 +394,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -452,7 +409,7 @@
 
 		public function testPutGet_fallbackLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -494,7 +451,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -506,7 +463,7 @@
 
 		public function testPutAll_withDifferentLocales() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -546,7 +503,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -556,7 +513,7 @@
 
 		public function testPutAll_withDefaultLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -588,7 +545,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -597,7 +554,7 @@
 
 		public function testPutAll_fallbackLocale() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -630,7 +587,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
@@ -639,7 +596,7 @@
 
 		public function testPutAllIso2Codes() {
 
-			$arrayCache = $this->mockArrayCache();
+			$arrayCache = $this->makeLocalCache();
 
 			$manager = new CountriesManager(
 				$arrayCache,
@@ -671,7 +628,7 @@
 			// clear cache and db is empty
 			CountryMetaData::query()->delete();
 			CountryLocalizedData::query()->delete();
-			$arrayCache->purge();
+			$arrayCache->clear();
 
 
 			// cache is empty => should be read from memory now
